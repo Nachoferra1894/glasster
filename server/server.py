@@ -10,10 +10,21 @@ import subprocess
 import os
 import uuid
 
-app = Flask(__name__)
+# Serve the built Vite frontend (dist/) from the same Flask app so the
+# whole thing deploys as a single service. Falls back gracefully when
+# dist/ doesn't exist (e.g. local dev with `vite` running separately).
+_DIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'dist')
+app = Flask(__name__, static_folder=_DIST, static_url_path='')
 CORS(app)
 
-UPLOAD_FOLDER = 'uploads'
+@app.route('/')
+def index():
+    index_file = os.path.join(_DIST, 'index.html')
+    if os.path.exists(index_file):
+        return app.send_static_file('index.html')
+    return 'Frontend not built. Run `pnpm build` first.', 404
+
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 ALLOWED_MODELS = ['u2net', 'u2netp', 'u2net_human_seg']
@@ -151,4 +162,5 @@ def remove_background():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5010, debug=True)
+    # Render injects PORT; default to 5010 for local dev
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5010)), debug=False)

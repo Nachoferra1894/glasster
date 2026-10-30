@@ -1,0 +1,18 @@
+# Run the whole app (frontend + Flask API) as a single service:
+#   docker compose up --build
+# Then open http://localhost:5010
+services:
+  app:
+    build: .
+    container_name: glasster
+    ports:
+      - "5010:5010"
+    environment:
+      - PORT=5010
+    volumes:
+      # persist the ML model cache so restarts don't re-download ~170MB
+      - model-cache:/root/.u2net
+    restart: unless-stopped
+
+volumes:
+  model-cache:

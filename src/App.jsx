@@ -46,7 +46,8 @@ function App() {
     formData.append('matting', matting ? '1' : '0')
 
     try {
-      const res = await fetch('http://localhost:5010/remove-background', {
+      // Same-origin by default; in local dev Vite proxies to the Flask server
+      const res = await fetch('/remove-background', {
         method: 'POST',
         body: formData,
       })
